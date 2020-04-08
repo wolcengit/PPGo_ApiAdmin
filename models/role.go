@@ -12,14 +12,14 @@ import (
 )
 
 type Role struct {
-	Id         int
-	RoleName   string
-	Detail     string
-	Status     int
-	CreateId   int
-	UpdateId   int
-	CreateTime int64
-	UpdateTime int64
+	Id         int    `orm:"column(id);pk;auto;unique" json:"id"`
+	RoleName   string `orm:"column(role_name);size(32)" json:"role_name"`         //角色名称
+	Detail     string `orm:"column(detail);size(255)" json:"detail"`              //备注
+	Status     int    `orm:"column(status);type(int)" json:"status"`              //状态：1-正常 0禁用
+	CreateId   int    `orm:"column(create_id);type(int)" json:"create_id"`        //创建者
+	UpdateId   int    `orm:"column(update_id);type(int)" json:"update_id"`        //修改者
+	CreateTime int64  `orm:"column(create_time);type(bigint)" json:"create_time"` //创建时间
+	UpdateTime int64  `orm:"column(update_time);type(bigint)" json:"update_time"` //修改时间
 }
 
 func (a *Role) TableName() string {
@@ -29,7 +29,7 @@ func (a *Role) TableName() string {
 func RoleGetList(page, pageSize int, filters ...interface{}) ([]*Role, int64) {
 	offset := (page - 1) * pageSize
 	list := make([]*Role, 0)
-	query := orm.NewOrm().QueryTable(TableName("uc_role"))
+	query := orm.NewOrm().QueryTable(new(Role))
 	if len(filters) > 0 {
 		l := len(filters)
 		for k := 0; k < l; k += 2 {
@@ -51,7 +51,7 @@ func RoleAdd(role *Role) (int64, error) {
 
 func RoleGetById(id int) (*Role, error) {
 	r := new(Role)
-	err := orm.NewOrm().QueryTable(TableName("uc_role")).Filter("id", id).One(r)
+	err := orm.NewOrm().QueryTable(new(Role)).Filter("id", id).One(r)
 	if err != nil {
 		return nil, err
 	}

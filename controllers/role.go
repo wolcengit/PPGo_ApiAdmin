@@ -116,8 +116,6 @@ func (self *RoleController) AjaxDel() {
 	if err := role.Update(); err != nil {
 		self.ajaxMsg(err.Error(), MSG_ERR)
 	}
-	// 删除该角色权限
-	//models.RoleAuthDelete(role_id)
 	self.ajaxMsg("", MSG_OK)
 }
 

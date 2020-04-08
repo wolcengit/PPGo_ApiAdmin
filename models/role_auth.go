@@ -16,8 +16,9 @@ import (
 )
 
 type RoleAuth struct {
-	AuthId int `orm:"pk"`
-	RoleId int64
+	Id     int   `orm:"column(id);pk;auto;unique" json:"id"`
+	AuthId int   `orm:"column(auth_id);type(int)" json:"auth_id"`
+	RoleId int64 `orm:"column(role_id);type(int)" json:"role_id"`
 }
 
 func (ra *RoleAuth) TableName() string {
@@ -30,7 +31,7 @@ func RoleAuthAdd(ra *RoleAuth) (int64, error) {
 
 func RoleAuthGetById(id int) ([]*RoleAuth, error) {
 	list := make([]*RoleAuth, 0)
-	query := orm.NewOrm().QueryTable(TableName("uc_role_auth"))
+	query := orm.NewOrm().QueryTable(new(RoleAuth))
 	_, err := query.Filter("role_id", id).All(&list, "AuthId")
 	if err != nil {
 		return nil, err
@@ -39,14 +40,14 @@ func RoleAuthGetById(id int) ([]*RoleAuth, error) {
 }
 
 func RoleAuthDelete(id int) (int64, error) {
-	query := orm.NewOrm().QueryTable(TableName("uc_role_auth"))
+	query := orm.NewOrm().QueryTable(new(RoleAuth))
 	return query.Filter("role_id", id).Delete()
 }
 
 //获取多个
 func RoleAuthGetByIds(RoleIds string) (Authids string, err error) {
 	list := make([]*RoleAuth, 0)
-	query := orm.NewOrm().QueryTable(TableName("uc_role_auth"))
+	query := orm.NewOrm().QueryTable(new(RoleAuth))
 	ids := strings.Split(RoleIds, ",")
 	_, err = query.Filter("role_id__in", ids).All(&list, "AuthId")
 	if err != nil {
@@ -61,17 +62,4 @@ func RoleAuthGetByIds(RoleIds string) (Authids string, err error) {
 	}
 	Authids = strings.TrimRight(b.String(), ",")
 	return Authids, nil
-}
-
-func RoleAuthMultiAdd(ras []*RoleAuth) (n int, err error) {
-	query := orm.NewOrm().QueryTable(TableName("uc_role_auth"))
-	i, _ := query.PrepareInsert()
-	for _, ra := range ras {
-		_, err := i.Insert(ra)
-		if err == nil {
-			n = n + 1
-		}
-	}
-	i.Close() // 别忘记关闭 statement
-	return n, err
 }

@@ -12,21 +12,21 @@ import (
 )
 
 type Admin struct {
-	Id         int
-	LoginName  string
-	RealName   string
-	Password   string
-	RoleIds    string
-	Phone      string
-	Email      string
-	Salt       string
-	LastLogin  int64
-	LastIp     string
-	Status     int
-	CreateId   int
-	UpdateId   int
-	CreateTime int64
-	UpdateTime int64
+	Id         int    `orm:"column(id);pk;auto;unique" json:"id"`
+	LoginName  string `orm:"column(login_name);size(32)" json:"login_name"`       //用户名
+	RealName   string `orm:"column(real_name);size(32)" json:"real_name"`         //真实姓名
+	Password   string `orm:"column(password);size(32)" json:"password"`           //密码
+	RoleIds    string `orm:"column(role_ids);size(254)" json:"role_ids"`          //角色id字符串，如：2,3,4
+	Phone      string `orm:"column(phone);size(32)" json:"phone"`                 //手机号码
+	Email      string `orm:"column(email);size(128)" json:"email"`                //邮箱
+	Salt       string `orm:"column(salt);size(10)" json:"salt"`                   //密码盐
+	LastLogin  int64  `orm:"column(last_login);type(bigint)" json:"last_login"`   //最后登录时间
+	LastIp     string `orm:"column(last_ip);size(16)" json:"last_ip"`             //最后登录IP
+	Status     int    `orm:"column(status);type(int)" json:"status"`              //状态：1-正常，0-禁用
+	CreateId   int    `orm:"column(create_id);type(int)" json:"create_id"`        //创建者
+	UpdateId   int    `orm:"column(update_id);type(int)" json:"update_id"`        //修改者
+	CreateTime int64  `orm:"column(create_time);type(bigint)" json:"create_time"` //创建时间
+	UpdateTime int64  `orm:"column(update_time);type(bigint)" json:"update_time"` //修改时间
 }
 
 func (a *Admin) TableName() string {
@@ -39,7 +39,7 @@ func AdminAdd(a *Admin) (int64, error) {
 
 func AdminGetByName(loginName string) (*Admin, error) {
 	a := new(Admin)
-	err := orm.NewOrm().QueryTable(TableName("uc_admin")).Filter("login_name", loginName).One(a)
+	err := orm.NewOrm().QueryTable(new(Admin)).Filter("login_name", loginName).One(a)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func AdminGetByName(loginName string) (*Admin, error) {
 func AdminGetList(page, pageSize int, filters ...interface{}) ([]*Admin, int64) {
 	offset := (page - 1) * pageSize
 	list := make([]*Admin, 0)
-	query := orm.NewOrm().QueryTable(TableName("uc_admin"))
+	query := orm.NewOrm().QueryTable(new(Admin))
 	if len(filters) > 0 {
 		l := len(filters)
 		for k := 0; k < l; k += 2 {
@@ -63,7 +63,7 @@ func AdminGetList(page, pageSize int, filters ...interface{}) ([]*Admin, int64) 
 
 func AdminGetById(id int) (*Admin, error) {
 	r := new(Admin)
-	err := orm.NewOrm().QueryTable(TableName("uc_admin")).Filter("id", id).One(r)
+	err := orm.NewOrm().QueryTable(new(Admin)).Filter("id", id).One(r)
 	if err != nil {
 		return nil, err
 	}
@@ -76,21 +76,3 @@ func (a *Admin) Update(fields ...string) error {
 	}
 	return nil
 }
-
-// func RoleAuthDelete(id int) (int64, error) {
-// 	query := orm.NewOrm().QueryTable(TableName("role_auth"))
-// 	return query.Filter("role_id", id).Delete()
-// }
-
-// func RoleAuthMultiAdd(ras []*RoleAuth) (n int, err error) {
-// 	query := orm.NewOrm().QueryTable(TableName("role_auth"))
-// 	i, _ := query.PrepareInsert()
-// 	for _, ra := range ras {
-// 		_, err := i.Insert(ra)
-// 		if err == nil {
-// 			n = n + 1
-// 		}
-// 	}
-// 	i.Close() // 别忘记关闭 statement
-// 	return n, err
-// }

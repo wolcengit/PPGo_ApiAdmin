@@ -17,7 +17,7 @@ import (
 
 	"github.com/george518/PPGo_ApiAdmin/libs"
 	"github.com/george518/PPGo_ApiAdmin/models"
-	cache "github.com/patrickmn/go-cache"
+	"github.com/patrickmn/go-cache"
 )
 
 type UserController struct {

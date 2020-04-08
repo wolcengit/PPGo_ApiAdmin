@@ -18,7 +18,7 @@ import (
 	"strconv"
 
 	"github.com/george518/PPGo_ApiAdmin/models"
-	cache "github.com/patrickmn/go-cache"
+	"github.com/patrickmn/go-cache"
 )
 
 type AuthController struct {
@@ -59,9 +59,6 @@ func (self *AuthController) GetNodes() {
 func (self *AuthController) GetNode() {
 	id, _ := self.GetInt("id")
 	result, _ := models.AuthGetById(id)
-	// if err == nil {
-	// 	self.ajaxMsg(err.Error(), MSG_ERR)
-	// }
 	row := make(map[string]interface{})
 	row["id"] = result.Id
 	row["pid"] = result.Pid

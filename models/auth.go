@@ -8,25 +8,23 @@
 package models
 
 import (
-	"fmt"
-
 	"github.com/astaxie/beego/orm"
 )
 
 type Auth struct {
-	Id         int
-	AuthName   string
-	AuthUrl    string
-	UserId     int
-	Pid        int
-	Sort       int
-	Icon       string
-	IsShow     int
-	Status     int
-	CreateId   int
-	UpdateId   int
-	CreateTime int64
-	UpdateTime int64
+	Id         int    `orm:"column(id);pk;auto;unique" json:"id"`
+	Pid        int    `orm:"column(pid);type(int)" json:"pid"`                    //上级ID，0为顶级
+	UserId     int    `orm:"column(user_id);type(int)" json:"user_id"`            //操作者
+	AuthName   string `orm:"column(auth_name);size(64)" json:"auth_name"`         //权限名称
+	AuthUrl    string `orm:"column(auth_url);size(254)" json:"auth_url"`          //URL地址
+	Sort       int    `orm:"column(sort);type(int)" json:"sort"`                  //排序，越小越前
+	Icon       string `orm:"column(icon);size(254)" json:"icon"`                  //icon
+	IsShow     int    `orm:"column(is_show);type(int)" json:"is_show"`            //是否显示，0-隐藏，1-显示
+	Status     int    `orm:"column(status);type(int)" json:"status"`              //状态：1-正常 0禁用
+	CreateId   int    `orm:"column(create_id);type(int)" json:"create_id"`        //创建者
+	UpdateId   int    `orm:"column(update_id);type(int)" json:"update_id"`        //修改者
+	CreateTime int64  `orm:"column(create_time);type(bigint)" json:"create_time"` //创建时间
+	UpdateTime int64  `orm:"column(update_time);type(bigint)" json:"update_time"` //修改时间
 }
 
 func (a *Auth) TableName() string {
@@ -36,7 +34,7 @@ func (a *Auth) TableName() string {
 func AuthGetList(page, pageSize int, filters ...interface{}) ([]*Auth, int64) {
 	offset := (page - 1) * pageSize
 	list := make([]*Auth, 0)
-	query := orm.NewOrm().QueryTable(TableName("uc_auth"))
+	query := orm.NewOrm().QueryTable(new(Auth))
 	if len(filters) > 0 {
 		l := len(filters)
 		for k := 0; k < l; k += 2 {
@@ -49,27 +47,6 @@ func AuthGetList(page, pageSize int, filters ...interface{}) ([]*Auth, int64) {
 	return list, total
 }
 
-func AuthGetListByIds(authIds string, userId int) ([]*Auth, error) {
-
-	list1 := make([]*Auth, 0)
-	var list []orm.Params
-	//list:=[]orm.Params
-	var err error
-	if userId == 1 {
-		//超级管理员
-		_, err = orm.NewOrm().Raw("select id,auth_name,auth_url,pid,icon,is_show from pp_uc_auth where status=? order by pid asc,sort asc", 1).Values(&list)
-	} else {
-		_, err = orm.NewOrm().Raw("select id,auth_name,auth_url,pid,icon,is_show from pp_uc_auth where status=1 and id in("+authIds+") order by pid asc,sort asc", authIds).Values(&list)
-	}
-
-	for k, v := range list {
-		fmt.Println(k, v)
-	}
-
-	fmt.Println(list)
-	return list1, err
-}
-
 func AuthAdd(auth *Auth) (int64, error) {
 	return orm.NewOrm().Insert(auth)
 }
@@ -77,7 +54,7 @@ func AuthAdd(auth *Auth) (int64, error) {
 func AuthGetById(id int) (*Auth, error) {
 	a := new(Auth)
 
-	err := orm.NewOrm().QueryTable(TableName("uc_auth")).Filter("id", id).One(a)
+	err := orm.NewOrm().QueryTable(new(Auth)).Filter("id", id).One(a)
 	if err != nil {
 		return nil, err
 	}
