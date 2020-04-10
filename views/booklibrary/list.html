@@ -1,0 +1,116 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs2">
+            <a class="layui-btn" data-type="tabAdd" href="{{urlfor "BookLibraryController.Add"}}">新增</a>
+        </div>
+        <div class="layui-col-xs10 search_text">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                <div class="demoTable">
+                    <div class="layui-inline">
+                        <select name="cat_id" id="cat_id" lay-filter="appfilter" lay-verify="required"  lay-search="" style="width: 100%">
+                            <option value="">所有类别</option>
+                            {{range $index,$elem := .Categorys}}
+                                <option value="{{$elem.id}}">{{$elem.name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="layui-inline" style="width: 40%">
+                        <input class="layui-input" name="searchName" id="searchName" autocomplete="off" placeholder="书籍名称" >
+                    </div>
+                    <button class="layui-inline layui-btn" data-type="reload">查询</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+        <a class="layui-btn layui-btn-xs" lay-event="auth">授权</a>
+    </script>
+</div>
+
+<script>
+    layui.use(['table','form','element'], function(){
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list'
+            ,url: '{{urlfor "BookLibraryController.AjaxTable"}}'
+            ,cols: [[
+                // {checkbox: true, fixed: true},
+                {field:'id', title: 'ID', align:'center',sort: true, width:80}
+                ,{field:'name',title: '书籍名称', align:'left',sort: true}
+                ,{field:'cat_name',title: '所属类别', align:'left',sort: true}
+                ,{field:'opened_name', title:'是否公开', align:'center',sort: true}
+                ,{field:'create_time', title: '创建时间', align:'center',sort: true}
+                ,{field:'update_time', title: '修改时间', align:'center',sort: true}
+                ,{fixed: 'right', width:240, align:'center', toolbar: '#bar'}
+            ]]
+            ,id: 'listReload'
+            ,page: true
+            ,height: "full-130"
+        });
+
+        var $ = layui.$, active = {
+            reload: function(){
+                table.reload('listReload', {
+                    where: {
+                        searchName: $('#searchName').val(),
+                        catId: $('#cat_id').val(),
+                    }
+                });
+            }
+        };
+        form.on('select(appfilter)',function (data) {
+            table.reload('listReload', {
+                where: {
+                    searchName: $('#searchName').val(),
+                    catId: data.value,
+                }
+            });
+        })
+
+        //监听工具条
+        table.on('tool(table_filter)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'detail'){
+                //layer.msg('ID：'+ data.id + ' 的查看操作');
+                window.location.href='{{urlfor "BookLibraryController.Detail"}}?id='+data.id
+            } else if(obj.event === 'del'){
+                layer.confirm('真的删除【'+data.name+'】书籍么', function(index){
+                    var jsData = {'id':data.id}
+                    $.post('{{urlfor "BookLibraryController.AjaxDel"}}', jsData, function (out) {
+                        if (out.status == 0) {
+                            layer.alert('删除成功了', {icon: 1},function(index){
+                                layer.close(index);
+                                window.location.reload();
+                            });
+                        } else {
+                            layer.msg(out.message)
+                        }
+                    }, "json");
+                    obj.del();
+                    layer.close(index);
+                });
+            } else if(obj.event === 'edit'){
+                window.location.href="{{urlfor "BookLibraryController.Edit"}}?id="+data.id
+            } else if(obj.event === 'auth'){
+                window.location.href="{{urlfor "BookLibraryController.Auth"}}?id="+data.id
+            }
+        });
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+
+</script>

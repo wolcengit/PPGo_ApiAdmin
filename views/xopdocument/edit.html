@@ -1,0 +1,139 @@
+<link rel="stylesheet" href="/static/editor.md/css/editormd.min.css"/>
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.core.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.excheck.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.exedit.js"></script>
+<script type="text/javascript" src="/static/editor.md/editormd.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/marked.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/prettify.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/raphael.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/underscore.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/sequence-diagram.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/flowchart.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/jquery.flowchart.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/plugins/image-handle-paste/image-handle-paste.js"></script>
+
+<form class="layui-form" action="" onsubmit="javascript:;" name="form" method="post">
+    <input type="hidden" name="id" value="{{.entity.Id}}">
+    <div class="layui-row">
+        <div class="layui-col-md10">
+            <label class="layui-form-label">文档名称</label>
+            <div class="layui-input-inline" style="width: 400px;">
+                <input type="text" name="name" id="name" readonly lay-verify="required" autocomplete="off" placeholder="请输入文档名称" class="layui-input" value="{{.entity.Name}}" />
+            </div>
+        </div>
+        <div class="layui-col-md2">
+            <button class="layui-btn layui-btn-normal" lay-submit="" lay-filter="save">提交</button>
+            <a class="layui-btn layui-btn-danger" href="javascript:;" id="cancel" lay-submit="">取消</a>
+        </div>
+    </div>
+    <div class="layui-row">
+         <div class="col-md-12" style="height: 98%">
+            <div class="layui-input-inline" id="document_editor" style="border: 1px solid #e4e4e4">
+<textarea name="detail" style="display:none;">
+{{.entity.Detail}}
+</textarea>
+             </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    var $, form;
+    var editor;
+    layui.config({
+        base: "js/"
+    }).use(['form', 'element', 'layer', 'jquery'], function () {
+        form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        $ = layui.jquery;
+
+        editor = editormd("document_editor", {
+            placeholder: "支持 Markdown 语法",
+            width: "90%",
+            height: 720,
+            path : '/static/editor.md/lib/',
+            toolbarIcons : function() {
+                // Using "||" set icons align right.
+                return [
+                    "sidebar", "save", "|",
+                    "undo", "redo", "|",
+                    "bold", "del", "italic", "quote", "|",
+                    "h1", "h2", "h3", "h4", "h5", "h6", "|",
+                    "list-ul", "list-ol", "hr", "|",
+                    "link", "reference-link", "image", "attachment", "code", "preformatted-text", "code-block", "table", "datetime", "html-entities", "pagebreak", "|",
+                    "goto-line", "watch", "preview", "search", "|",
+                    "help"
+                ]
+            },
+            theme : "default",
+            previewTheme : "default",
+            editorTheme : "default",
+            markdown : {{.entity.Detail}},
+            codeFold : true,
+            placeholder: "请使用 Markdown 规范编写！",
+            //syncScrolling : false,
+            saveHTMLToTextarea: false,    // 保存 HTML 到 Textarea
+            searchReplace: true,
+            //watch : false,                // 关闭实时预览
+            // htmlDecode : "style,script,iframe|on*,alert",  // 开启 HTML 标签解析，为了安全性，默认不开启
+            htmlDecode : "style,script,iframe,sub,sup,embed,img|on*",  // 开启 HTML 标签解析，为了安全性，默认不开启
+            //toolbar  : false,             //关闭工具栏
+            //previewCodeHighlight : false, // 关闭预览 HTML 的代码块高亮，默认开启
+            emoji : false,
+            taskList : true,
+            tocm : true,                  // Using [TOCM]
+            tex : true,                   // 开启科学公式TeX语言支持，默认关闭
+            flowChart : true,             // 开启流程图支持，默认关闭
+            sequenceDiagram : true,       // 开启时序/序列图支持，默认关闭,
+            //dialogLockScreen : false,   // 设置弹出层对话框不锁屏，全局通用，默认为true
+            //dialogShowMask : false,     // 设置弹出层对话框显示透明遮罩层，全局通用，默认为true
+            //dialogDraggable : false,    // 设置弹出层对话框不可拖动，全局通用，默认为true
+            //dialogMaskOpacity : 0.4,    // 设置透明遮罩层的透明度，全局通用，默认值为0.1
+            //dialogMaskBgColor : "#000", // 设置透明遮罩层的背景颜色，全局通用，默认为#fff
+            imageUpload : true,
+            imageFormats : ["bmp", "jpg", "gif", "png", "tif", "jpeg","ico","webp","svg","wmf","emf"],
+            imageUploadURL : "{{urlfor "XopDocumentController.Upload"}}?id="+$("#id").val(),
+            onload : function() {
+                // console.log('onload', this);
+                // this.fullscreen();
+                //this.unwatch();
+                //this.watch().fullscreen();
+                //this.setMarkdown("#PHP");
+                // todo resize height
+                // this.width("100%");
+                // this.height(600);
+                //this.resize("100%", 640);
+            },
+        });
+        editor.imagePaste();
+
+        $('#cancel').on('click', function () {
+            layer.confirm('确定要放弃此次修改吗?', function(index){
+                window.location.reload();
+            });
+            return false;
+        });
+
+        form.on("submit", function (data) {
+            console.log($("form").serialize());
+
+            $.post('{{urlfor "XopDocumentController.AjaxSaveDetail"}}', $("form").serialize(), function (out) {
+
+                if (out.status == 0) {
+                    // layer.msg("操作成功")
+                    layer.alert('你成功了', {icon: 1}, function (index) {
+                        window.location.reload();
+                    });
+                } else {
+                    layer.msg(out.message)
+                }
+            }, "json");
+            return false;
+        });
+
+        form.render();
+        //但是，如果你的HTML是动态生成的，自动渲染就会失效
+        //因此你需要在相应的地方，执行下述方法来手动渲染，跟这类似的还有 element.init();
+
+    });
+</script>

@@ -9,7 +9,6 @@ package controllers
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -53,54 +52,64 @@ func (self *RoleController) Edit() {
 	fmt.Println(authId)
 	self.display()
 }
+func (self *RoleController) Detail() {
+	self.Data["zTree"] = true //引入ztreecss
+	self.Data["pageTitle"] = "查看角色"
+
+	id, _ := self.GetInt("id", 0)
+	role, _ := models.RoleGetById(id)
+	row := make(map[string]interface{})
+	row["id"] = role.Id
+	row["role_name"] = role.RoleName
+	row["detail"] = role.Detail
+	self.Data["role"] = row
+
+	//获取选择的树节点
+	roleAuth, _ := models.RoleAuthGetById(id)
+	authId := make([]int, 0)
+	for _, v := range roleAuth {
+		authId = append(authId, v.AuthId)
+	}
+	self.Data["auth"] = authId
+	fmt.Println(authId)
+	self.display()
+}
 
 func (self *RoleController) AjaxSave() {
-	role := new(models.Role)
-	role.RoleName = strings.TrimSpace(self.GetString("role_name"))
-	role.Detail = strings.TrimSpace(self.GetString("detail"))
-	role.CreateTime = time.Now().Unix()
-	role.UpdateTime = time.Now().Unix()
-	role.Status = 1
 	auths := strings.TrimSpace(self.GetString("nodes_data"))
 	role_id, _ := self.GetInt("id")
 	if role_id == 0 {
 		//新增
+		role := new(models.Role)
+		role.RoleName = strings.TrimSpace(self.GetString("role_name"))
+		role.Detail = strings.TrimSpace(self.GetString("detail"))
 		role.CreateTime = time.Now().Unix()
 		role.UpdateTime = time.Now().Unix()
+		role.Status = 1
 		role.CreateId = self.userId
 		role.UpdateId = self.userId
 		if id, err := models.RoleAdd(role); err != nil {
 			self.ajaxMsg(err.Error(), MSG_ERR)
 		} else {
-			ra := new(models.RoleAuth)
-			authsSlice := strings.Split(auths, ",")
-			for _, v := range authsSlice {
-				aid, _ := strconv.Atoi(v)
-				ra.AuthId = aid
-				ra.RoleId = id
-				models.RoleAuthAdd(ra)
-			}
+			models.RoleAuthInsertMult(id, auths)
 		}
 		self.ajaxMsg("", MSG_OK)
 	}
 	//修改
-	role.Id = role_id
+	role, _ := models.RoleGetById(role_id)
+	if role.Status == 2 {
+		self.ajaxMsg("系统角色不可以编辑", MSG_ERR)
+	}
+	role.RoleName = strings.TrimSpace(self.GetString("role_name"))
+	role.Detail = strings.TrimSpace(self.GetString("detail"))
+	role.UpdateTime = time.Now().Unix()
 	role.UpdateTime = time.Now().Unix()
 	role.UpdateId = self.userId
 	if err := role.Update(); err != nil {
 		self.ajaxMsg(err.Error(), MSG_ERR)
 	} else {
 		// 删除该角色权限
-		models.RoleAuthDelete(role_id)
-		ra := new(models.RoleAuth)
-		authsSlice := strings.Split(auths, ",")
-		for _, v := range authsSlice {
-			aid, _ := strconv.Atoi(v)
-			ra.AuthId = aid
-			ra.RoleId = int64(role_id)
-			models.RoleAuthAdd(ra)
-		}
-
+		models.RoleAuthInsertMult(int64(role.Id), auths)
 	}
 	self.ajaxMsg("", MSG_OK)
 }
@@ -109,6 +118,9 @@ func (self *RoleController) AjaxDel() {
 
 	role_id, _ := self.GetInt("id")
 	role, _ := models.RoleGetById(role_id)
+	if role.Status == 2 {
+		self.ajaxMsg("系统角色不可以删除", MSG_ERR)
+	}
 	role.Status = 0
 	role.Id = role_id
 	role.UpdateTime = time.Now().Unix()
@@ -119,7 +131,7 @@ func (self *RoleController) AjaxDel() {
 	self.ajaxMsg("", MSG_OK)
 }
 
-func (self *RoleController) Table() {
+func (self *RoleController) AjaxTable() {
 	//列表
 	page, err := self.GetInt("page")
 	if err != nil {
@@ -134,7 +146,7 @@ func (self *RoleController) Table() {
 	self.pageSize = limit
 	//查询条件
 	filters := make([]interface{}, 0)
-	filters = append(filters, "status", 1)
+	filters = append(filters, "status__gte", 1)
 	if roleName != "" {
 		filters = append(filters, "role_name__icontains", roleName)
 	}
@@ -143,6 +155,7 @@ func (self *RoleController) Table() {
 	for k, v := range result {
 		row := make(map[string]interface{})
 		row["id"] = v.Id
+		row["status"] = v.Status
 		row["role_name"] = v.RoleName
 		row["detail"] = v.Detail
 		row["create_time"] = beego.Date(time.Unix(v.CreateTime, 0), "Y-m-d H:i:s")

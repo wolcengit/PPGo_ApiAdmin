@@ -35,7 +35,7 @@
 
 
         <div class="layui-form-item">
-            <label class="layui-form-label">是否修改</label>
+            <label class="layui-form-label">修改密码</label>
             <div class="layui-input-inline">
                 <input type="radio" name="reset_pwd" lay-verify="reset_pwd" value="1" title="是">
                 <input type="radio" name="reset_pwd" lay-verify="reset_pwd" value="2" title="否" checked>
@@ -97,7 +97,7 @@
             $.post('{{urlfor "UserController.AjaxSave"}}', form_data, function (out) {
                 if (out.status == 0) {
                     layer.msg("操作成功,请重新登录",{icon: 1},function () {
-                        top.location.href="/login_out"
+                        top.location.href="{{urlfor "LoginController.Logout"}}"
                     })
                 } else {
                     layer.msg(out.message)

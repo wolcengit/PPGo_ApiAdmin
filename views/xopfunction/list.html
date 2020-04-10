@@ -1,0 +1,164 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs2">
+            <a class="layui-btn" data-type="tabAdd" href="{{urlfor "XopFunctionController.Add"}}">新增</a>
+        </div>
+        <div class="layui-col-xs10 search_text">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                 <div class="demoTable">
+                    <div class="layui-inline" style="width: 20%">
+                        <select name="mod_id" id="mod_id" lay-filter="modfilter" lay-verify="required"  lay-search="" style="width: 100%">
+                        <option value="">所有模块</option>
+                            {{range $index,$elem := .Modules}}
+                                <option value="{{$elem.id}}">{{$elem.name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                     <div class="layui-inline" style="width: 20%">
+                         <select name="cat_id" id="cat_id" lay-filter="catfilter"   lay-verify="required"  lay-search="" style="width: 100%">
+                             <option value="">请选择类别</option>
+                         </select>
+                     </div>
+                     <div class="layui-inline" style="width: 20%">
+                         <select name="grp_id" id="grp_id" lay-filter="grpfilter"   lay-verify="required"  lay-search="" style="width: 100%">
+                             <option value="">请选择分组</option>
+                         </select>
+                     </div>
+                     <div class="layui-inline" style="width: 20%">
+                        <input class="layui-input" name="searchName" id="searchName" autocomplete="off" placeholder="函数名称" >
+                    </div>
+                    <button class="layui-inline layui-btn" data-type="reload">查询</button>
+                     <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+</div>
+<script>
+    layui.use(['table','form','element'], function(){
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list'
+            ,url: '{{urlfor "XopFunctionController.AjaxTable"}}'
+            ,cols: [[
+                // {checkbox: true, fixed: true},
+                {field:'id', title: 'ID', align:'center',sort: true, width:80}
+                ,{field:'code',title: '函数编码', align:'center',sort: true}
+                ,{field:'name',title: '函数名称', align:'left',sort: true}
+                ,{field:'grp_name',title: '所属分组', align:'left',sort: true}
+                ,{field:'cat_name',title: '所属类别', align:'left',sort: true}
+                ,{field:'mod_name',title: '所属模块', align:'left',sort: true}
+                ,{field:'create_time', title: '创建时间', align:'center',sort: true}
+                ,{field:'update_time', title: '修改时间', align:'center',sort: true}
+                ,{fixed: 'right', width:160, align:'center', toolbar: '#bar'}
+            ]]
+            ,id: 'listReload'
+            ,page: true
+            ,height: "full-130"
+        });
+
+        var $ = layui.$, active = {
+            reload: function(){
+                table.reload('listReload', {
+                    where: {
+                        searchName: $('#searchName').val(),
+                        modId: $('#mod_id').val(),
+                        catId: $('#cat_id').val(),
+                        grpId: $('#grp_id').val(),
+                    }
+                });
+            }
+        };
+        form.on('select(modfilter)',function (data) {
+            var jsData = {'id':data.value}
+            $.post('{{urlfor "XopCategoryController.AjaxList"}}', jsData, function (out) {
+                $('#cat_id').html('<option value="">请选择类别</option>');
+                $.each(out.data,function (index, item) {
+                    $('#cat_id').append(new Option(item.name,item.id));
+                })
+                layui.form.render("select");
+            }, "json");
+
+            table.reload('listReload', {
+                where: {
+                    searchName: $('#searchName').val(),
+                    modId: data.value,
+                    catd: $('#cat_id').val(),
+                    grpId: $('#grp_id').val(),
+                }
+            });
+        })
+        form.on('select(catfilter)',function (data) {
+            var jsData = {'id':data.value}
+            $.post('{{urlfor "XopGroupController.AjaxList"}}', jsData, function (out) {
+                $('#grp_id').html('<option value="">请选择分组</option>');
+                $.each(out.data,function (index, item) {
+                    $('#grp_id').append(new Option(item.name,item.id));
+                })
+                layui.form.render("select");
+            }, "json");
+
+            table.reload('listReload', {
+                where: {
+                    searchName: $('#searchName').val(),
+                    modId: $('#mod_id').val(),
+                    catId: data.value,
+                    grpId: $('#grp_id').val(),
+                }
+            });
+        })
+        form.on('select(grpfilter)',function (data) {
+            table.reload('listReload', {
+                where: {
+                    searchName: $('#searchName').val(),
+                    appId: $('#mod_id').val(),
+                    modId: $('#cat_id').val(),
+                    catId: data.value,
+                }
+            });
+        })
+
+    //监听工具条
+    table.on('tool(table_filter)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'detail'){
+            //layer.msg('ID：'+ data.id + ' 的查看操作');
+        } else if(obj.event === 'del'){
+            layer.confirm('真的删除【'+data.name+'】函数么', function(index){
+            var jsData = {'id':data.id}
+            $.post('{{urlfor "XopFunctionController.AjaxDel"}}', jsData, function (out) {
+                if (out.status == 0) {
+                    layer.alert('删除成功了', {icon: 1},function(index){
+                        layer.close(index);
+                        window.location.reload();
+                    });
+                } else {
+                    layer.msg(out.message)
+                }
+            }, "json");
+            obj.del();
+            layer.close(index);
+        });
+        } else if(obj.event === 'edit'){
+            window.location.href="{{urlfor "XopFunctionController.Edit"}}?id="+data.id
+        }
+    });
+
+    $('.demoTable .layui-btn').on('click', function(){
+        var type = $(this).data('type');
+        active[type] ? active[type].call(this) : '';
+    });
+});
+
+</script>

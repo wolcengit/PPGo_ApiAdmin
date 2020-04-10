@@ -8,7 +8,6 @@
 package controllers
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -31,17 +30,7 @@ func (self *AdminController) Add() {
 	self.Data["pageTitle"] = "新增管理员"
 
 	// 角色
-	filters := make([]interface{}, 0)
-	filters = append(filters, "status", 1)
-	result, _ := models.RoleGetList(1, 1000, filters...)
-	list := make([]map[string]interface{}, len(result))
-	for k, v := range result {
-		row := make(map[string]interface{})
-		row["id"] = v.Id
-		row["role_name"] = v.RoleName
-		list[k] = row
-	}
-
+	list, _ := models.RoleGetListForSelect("")
 	self.Data["role"] = list
 
 	self.display()
@@ -61,26 +50,27 @@ func (self *AdminController) Edit() {
 	row["role_ids"] = Admin.RoleIds
 	self.Data["admin"] = row
 
-	role_ids := strings.Split(Admin.RoleIds, ",")
+	list, _ := models.RoleGetListForSelect(Admin.RoleIds)
+	self.Data["role"] = list
+	self.display()
+}
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "status", 1)
-	result, _ := models.RoleGetList(1, 1000, filters...)
-	list := make([]map[string]interface{}, len(result))
-	for k, v := range result {
-		row := make(map[string]interface{})
-		row["checked"] = 0
-		for i := 0; i < len(role_ids); i++ {
-			role_id, _ := strconv.Atoi(role_ids[i])
-			if role_id == v.Id {
-				row["checked"] = 1
-			}
-			fmt.Println(role_ids[i])
-		}
-		row["id"] = v.Id
-		row["role_name"] = v.RoleName
-		list[k] = row
-	}
+func (self *AdminController) Detail() {
+	self.Data["pageTitle"] = "查看管理员"
+
+	id, _ := self.GetInt("id", 0)
+	Admin, _ := models.AdminGetById(id)
+	row := make(map[string]interface{})
+	row["id"] = Admin.Id
+	row["login_name"] = Admin.LoginName
+	row["real_name"] = Admin.RealName
+	row["phone"] = Admin.Phone
+	row["email"] = Admin.Email
+	row["appkey"] = Admin.Appkey
+	row["role_ids"] = Admin.RoleIds
+	self.Data["admin"] = row
+
+	list, _ := models.RoleGetListForSelect(Admin.RoleIds)
 	self.Data["role"] = list
 	self.display()
 }
@@ -108,6 +98,7 @@ func (self *AdminController) AjaxSave() {
 		pwd, salt := libs.Password(4, "")
 		Admin.Password = pwd
 		Admin.Salt = salt
+		Admin.Appkey = libs.GetRandomString(16)
 		Admin.CreateTime = time.Now().Unix()
 		Admin.CreateId = self.userId
 		if _, err := models.AdminAdd(Admin); err != nil {
@@ -135,6 +126,10 @@ func (self *AdminController) AjaxSave() {
 		pwd, salt := libs.Password(4, "")
 		Admin.Password = pwd
 		Admin.Salt = salt
+	}
+	resetAppkey, _ := self.GetInt("reset_appkey")
+	if resetAppkey == 1 {
+		Admin.Appkey = libs.GetRandomString(16)
 	}
 	if err := Admin.Update(); err != nil {
 		self.ajaxMsg(err.Error(), MSG_ERR)
@@ -165,7 +160,7 @@ func (self *AdminController) AjaxDel() {
 	self.ajaxMsg("操作成功", MSG_OK)
 }
 
-func (self *AdminController) Table() {
+func (self *AdminController) AjaxTable() {
 	//列表
 	page, err := self.GetInt("page")
 	if err != nil {

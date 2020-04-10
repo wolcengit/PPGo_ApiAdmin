@@ -20,7 +20,7 @@
     </table>
 
     <script type="text/html" id="bar">
-       <!--  <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a> -->
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
         <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="status">启|禁</a>
 
@@ -36,16 +36,16 @@
         //方法级渲染
         table.render({
             elem: '#table_list'
-            ,url: '/admin/table'
+            ,url: '/admin/ajaxtable'
             ,cols: [[
                 // {checkbox: true, fixed: true},
-                {field:'id', title: 'ID', align:'center',sort: true, width:150}
+                {field:'id', title: 'ID', align:'center',sort: true, width:80}
                 ,{field:'login_name',title: '登录账号'}
                 ,{field:'real_name', title: '真实姓名'}
                 ,{field:'phone', title: '联系电话'}
                 ,{field:'email', title: '电子邮箱'}
                 ,{field:'status_text', title: '状态'}
-                ,{fixed: 'right', width:160, align:'center', toolbar: '#bar'}
+                ,{fixed: 'right', width:200, align:'center', toolbar: '#bar'}
             ]]
             ,id: 'listReload'
             ,page: true
@@ -65,7 +65,9 @@
         //监听工具条
         table.on('tool(table_filter)', function(obj){
             var data = obj.data;
-            if(obj.event === 'edit'){
+            if(obj.event === 'detail'){
+                window.location.href="/admin/detail?id="+data.id
+            } else if(obj.event === 'edit'){
                 window.location.href="/admin/edit?id="+data.id
             } else if(obj.event === 'status'){
 

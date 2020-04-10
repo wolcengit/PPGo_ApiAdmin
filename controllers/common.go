@@ -29,6 +29,7 @@ type BaseController struct {
 	controllerName string
 	actionName     string
 	user           *models.Admin
+	prodId         int
 	userId         int
 	userName       string
 	loginName      string
@@ -47,7 +48,38 @@ func (self *BaseController) Prepare() {
 	self.Data["curRoute"] = self.controllerName + "." + self.actionName
 	self.Data["curController"] = self.controllerName
 	self.Data["curAction"] = self.actionName
-	self.auth()
+	appkey := strings.TrimSpace(self.GetString("appkey"))
+	productId, _ := self.GetInt("product")
+	if appkey != "" && productId > 0 {
+		user, err := models.AdminGetByAppkey(appkey)
+		if err != nil {
+			self.ajaxMsg("没有权限", MSG_ERR)
+			return
+		}
+		user.LastProd = productId
+
+		self.userId = user.Id
+		self.prodId = productId
+
+		self.loginName = user.LoginName
+		self.userName = user.RealName
+		self.user = user
+		self.AdminAuth()
+
+		if self.userId > 1 {
+			isHasAuth := strings.Contains(self.allowUrl, self.controllerName+"/"+self.actionName)
+			if strings.HasPrefix(self.actionName, "ajax") {
+				isHasAuth = true
+			}
+			if isHasAuth == false {
+				self.ajaxMsg("没有权限", MSG_ERR)
+				return
+			}
+		}
+
+	} else {
+		self.auth()
+	}
 
 	self.Data["loginUserId"] = self.userId
 	self.Data["loginUserName"] = self.userName
@@ -73,27 +105,31 @@ func (self *BaseController) auth() {
 			}
 			if err == nil && password == libs.Md5([]byte(self.getClientIp()+"|"+user.Password+user.Salt)) {
 				self.userId = user.Id
-
+				self.prodId = user.LastProd
 				self.loginName = user.LoginName
 				self.userName = user.RealName
 				self.user = user
 				self.AdminAuth()
 			}
-
-			isHasAuth := strings.Contains(self.allowUrl, self.controllerName+"/"+self.actionName)
-			//不需要权限检查
-			noAuth := "/ajaxsave/ajaxdel/table/loginin/loginout/getnodes/start/index/"
-			isNoAuth := strings.Contains(noAuth, self.actionName)
-			if isHasAuth == false && isNoAuth == false {
-				self.Ctx.WriteString("没有权限")
-				self.ajaxMsg("没有权限", MSG_ERR)
-				return
+			if userId > 1 {
+				isHasAuth := strings.Contains(self.allowUrl, self.controllerName+"/"+self.actionName)
+				//不需要权限检查
+				noAuth := "/login/logout/start/index/detail/"
+				if strings.HasPrefix(self.actionName, "ajax") {
+					isHasAuth = true
+				}
+				isNoAuth := strings.Contains(noAuth, self.actionName)
+				if isHasAuth == false && isNoAuth == false {
+					self.Ctx.WriteString("没有权限")
+					self.ajaxMsg("没有权限", MSG_ERR)
+					return
+				}
 			}
 		}
 	}
 
-	if self.userId == 0 && (self.controllerName != "login" && self.actionName != "loginin") {
-		self.redirect(beego.URLFor("LoginController.LoginIn"))
+	if self.userId == 0 && (self.controllerName != "login" && self.actionName != "login") {
+		self.redirect(beego.URLFor("LoginController.Login"))
 	}
 }
 
@@ -107,15 +143,7 @@ func (self *BaseController) AdminAuth() {
 		self.allowUrl = menu.AllowUrl
 	} else {
 		// 左侧导航栏
-		filters := make([]interface{}, 0)
-		filters = append(filters, "status", 1)
-		if self.userId != 1 {
-			//普通管理员
-			adminAuthIds, _ := models.RoleAuthGetByIds(self.user.RoleIds)
-			adminAuthIdArr := strings.Split(adminAuthIds, ",")
-			filters = append(filters, "id__in", adminAuthIdArr)
-		}
-		result, _ := models.AuthGetList(1, 1000, filters...)
+		result, _ := models.AuthGetListForMenu(self.userId, self.user.RoleIds)
 		list := make([]map[string]interface{}, len(result))
 		list2 := make([]map[string]interface{}, len(result))
 		allow_url := ""
@@ -213,6 +241,13 @@ func (self *BaseController) ajaxList(msg interface{}, msgno int, count int64, da
 	out["count"] = count
 	out["data"] = data
 	self.Data["json"] = out
+	self.ServeJSON()
+	self.StopRun()
+}
+
+//ajax返回 JSON
+func (self *BaseController) ajaxJson(data interface{}) {
+	self.Data["json"] = data
 	self.ServeJSON()
 	self.StopRun()
 }

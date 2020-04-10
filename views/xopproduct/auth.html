@@ -1,0 +1,160 @@
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.core.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.excheck.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.exedit.js"></script>
+
+<div class="layui-row">
+    <div class="layui-col-md5">
+        <div class="layui-layout layui-layout-admin" style="padding-left: 40px;margin-top: 20px;">
+            <form class="layui-form" action="" onsubmit="javascript:;" name="form" method="post">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">产品编码</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="code" id="code" readonly lay-verify="required" autocomplete="off" placeholder="产品编码" class="layui-input" value="{{.entity.code}}">
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">*</div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">产品名称</label>
+                    <div class="layui-input-inline" style="width: 300px;">
+                        <input type="text" name="name" id="name" readonly lay-verify="required" autocomplete="off" placeholder="产品名称" class="layui-input" value="{{.entity.name}}">
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">*</div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">产品说明</label>
+                    <div class="layui-input-inline" style="width: 300px;">
+                        <textarea name="detail" id="detail"  readonly placeholder="请输入内容" class="layui-textarea">{{.entity.detail}}</textarea>
+                    </div>
+                </div>
+
+                <input type="hidden" id="id" name="id" value="{{.entity.id}}">
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit="" lay-filter="save">保存</button>
+                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="layui-col-md5 zTreeDemoBackground" style="margin-left: 20px;margin-right: 0px">
+        <label class="layui-form-label">权限</label>
+        <div class="layui-col-md3 zTreeDemoBackground" style="margin-left: 20px;margin-right: 0px">
+            <ul id="treeDemo" class="ztree" style="height:auto;margin-bottom: 10px;"></ul>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var $,form;
+    layui.config({
+        base : "js/"
+    }).use(['form','element','layer','jquery'],function(){
+        form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        $ = layui.jquery;
+
+        $("form").submit(function () {
+            var id = $("#id").val()
+
+            var treeObj = $.fn.zTree.getZTreeObj("treeDemo");
+            var nodes = treeObj.getCheckedNodes(true);
+            var nodes_data = nodes_select_data(nodes,{});
+
+            var data = {'id':id,'nodes_data':nodes_data}
+            console.log(data)
+            $.post('{{urlfor "XopProductController.AjaxAuthSave"}}', data, function (out) {
+                if (out.status == 0) {
+                    layer.alert('保存成功了', {icon: 1},function(index){
+                        layer.close(index);
+                        window.location.href='{{urlfor "XopProductController.List"}}'
+                    });
+                } else {
+                    layer.msg(out.message)
+                }
+            }, "json");
+            return false;
+        });
+
+        form.render();
+        //但是，如果你的HTML是动态生成的，自动渲染就会失效
+        //因此你需要在相应的地方，执行下述方法来手动渲染，跟这类似的还有 element.init();
+
+    });
+</script>
+
+<script type="text/javascript">
+    var zNodes = [{ id:1, pId:0, name:"数据错误"}];
+    var setting = {
+        check: {
+            enable: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        }
+    };
+    //加载树
+    refresh_tree();
+
+    function refresh_tree()
+    {
+        var time   = Date.parse(new Date());
+        $.ajax({
+            type: "POST",
+            url: "{{urlfor "XopProductController.AjaxUserNodes" "id" .entity.id}}",
+            data: {time:time},
+            dataType: 'json',
+            success: function(data) {
+                if(data.code==0){
+                    zNodes = data.data;
+                    $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+                }
+            }
+        });
+        setCheck();
+        $("#py").bind("change", setCheck);
+        $("#sy").bind("change", setCheck);
+        $("#pn").bind("change", setCheck);
+        $("#sn").bind("change", setCheck);
+    }
+
+    function nodes_select_data(obj,nodes)
+    {
+        var nodes_str = '';
+        $.each(obj,function(k,v){
+            if(!v['name']) return nodes;
+            node_id = v["id"]
+            var i = 0;
+            for (var j in nodes) { i++}
+            nodes_str += v['id']+","
+        });
+
+        return nodes_str;
+    }
+
+    function setCheck() {
+        type = { "Y" : "ps", "N" : "ps" };
+        setting.check.chkboxType = type;
+    }
+
+    function showCode(str) {
+        var code = $("#code");
+        code.empty();
+        for (var i=0, l=str.length; i<l; i++) {
+            code.append("<li>"+str[i]+"</li>");
+        }
+    }
+
+    function formSubmit() {
+
+
+    }
+
+    // });
+</script>

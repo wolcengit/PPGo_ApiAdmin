@@ -1,0 +1,26 @@
+appname = XopAdmin
+httpport = "${PPGO_HTTPPORT||8081}"
+runmode = "${PPGO_RUNMODE||dev}"
+
+# 站点名称
+site.name = XOP管理平台
+
+# 数据库配置
+db.host = "${PPGO_DB_HOST||localhost}"
+db.user = "${PPGO_DB_USER||ppgo_api_admin}"
+db.pass = "${PPGO_DB_PASS||ppgo_api_admin.P@ssw0rd}"
+db.port = "${PPGO_DB_PORT||3306}"
+db.name = "${PPGO_DB_NAME||ppgo_api_admin}"
+db.prefix = "${PPGO_DB_PREFIX||pp_}"
+db.timezone = Asia/Shanghai
+
+# LDAP配置
+ldap.enable="${PPGO_LDAP_ENABLE||false}"
+ldap.domain="${PPGO_LDAP_DOMAIN||@xxx.local}"
+ldap.host="${PPGO_LDAP_HOST||172.10.0.1}"
+ldap.port="${PPGO_LDAP_PORT||389}"
+ldap.base="${PPGO_LDAP_BASE||dc=xxx,dc=local}"
+ldap.user="${PPGO_LDAP_USER||cn=ldaponly,cn=users,dc=xxx,dc=local}"
+ldap.password="${PPGO_LDAP_PASS||P@ssw0rd}"
+ldap.attribute=userPrincipalName
+ldap.filter="objectClass=User"

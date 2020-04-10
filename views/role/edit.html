@@ -9,12 +9,7 @@
             修改角色以及角色权限
         </blockquote>
     </div>
-        
-    <div class="layui-col-md5 zTreeDemoBackground" style="margin-left: 20px;margin-right: 0px">
-        <ul id="treeDemo" class="ztree" style="height:320px; width: auto; margin-bottom: 10px;">
-        </ul>
-    </div>
-    <div class="layui-col-md7">
+    <div class="layui-col-md5">
         <div class="layui-layout layui-layout-admin" style="padding-left: 40px;margin-top: 20px;">
             <form class="layui-form" action="" onsubmit="javascript:;" name="form" method="post">
                 
@@ -44,6 +39,13 @@
             </form>
         </div>
     </div>
+
+    <div class="layui-col-md7 zTreeDemoBackground" style="margin-left: 20px;margin-right: 0px">
+        <label class="layui-form-label">功能权限</label>
+        <ul id="treeDemo" class="ztree" style="height:320px; width: 200px; margin-bottom: 10px;">
+        </ul>
+    </div>
+
 </div>
 
 
@@ -63,16 +65,19 @@ var $,form;
             }
             var id = $("#id").val()
             var detail = $("#detail").val();
+
             var treeObj = $.fn.zTree.getZTreeObj("treeDemo");
             var nodes = treeObj.getCheckedNodes(true);
             var nodes_data = nodes_select_data(nodes,{});
-            var data = {'role_name':role_name,'id':id,'detail':detail,'nodes_data':nodes_data}
+
+            var data = {'id':id,'role_name':role_name,'detail':detail,'nodes_data':nodes_data}
             console.log(data)
+
             $.post('{{urlfor "RoleController.AjaxSave"}}', data, function (out) {
                 if (out.status == 0) {
                     layer.alert('保存成功了', {icon: 1},function(index){
                         layer.close(index);
-                        window.location.reload();
+                        window.location.href='{{urlfor "RoleController.List"}}'
                     });
                 } else {
                     layer.msg(out.message)
@@ -89,7 +94,8 @@ var $,form;
 </script>
 
 <script type="text/javascript">
-    var zNodes = [{ id:1, pId:0, name:"数据错误"}]; 
+    var zNodes = [{ id:1, pId:0, name:"数据错误"}];
+    var zBookNodes = [{ id:1, pId:0, name:"数据错误"}];
     var checked = {{.auth}}
     console.log(checked)
     // $(document).ready(function(){ 
@@ -111,7 +117,7 @@ var $,form;
             var time   = Date.parse(new Date());
             $.ajax({
                 type: "POST",
-                url: "/auth/getnodes",
+                url: "/auth/ajaxnodes",
                 data: {time:time},
                 dataType: 'json',
                 success: function(data) {
@@ -120,7 +126,7 @@ var $,form;
                         $.fn.zTree.init($("#treeDemo"), setting, zNodes);
                     }
                 }
-            }); 
+            });
             setCheck();
             $("#py").bind("change", setCheck);
             $("#sy").bind("change", setCheck);

@@ -1,0 +1,379 @@
+<link rel="stylesheet" href="/static/editor.md/css/editormd.min.css"/>
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.core.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.excheck.js"></script>
+<script type="text/javascript" src="/static/zTree3/js/jquery.ztree.exedit.js"></script>
+<script type="text/javascript" src="/static/editor.md/editormd.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/marked.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/prettify.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/raphael.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/underscore.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/sequence-diagram.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/flowchart.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/lib/jquery.flowchart.min.js"></script>
+<script type="text/javascript" src="/static/editor.md/plugins/image-handle-paste/image-handle-paste.js"></script>
+
+
+<form class="layui-form" action="" onsubmit="javascript:;" name="form" method="post">
+    <div class="layui-row">
+        <div class="layui-col-md3">
+            <div class="layui-col-md3 zTreeDemoBackground" style="margin-left: 20px;margin-right: 0px">
+                <ul id="treeDemo" class="ztree" style="height:768px;margin-bottom: 10px;"></ul>
+            </div>
+        </div>
+        <div class="layui-col-md9">
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">上级目录</label>
+                        <div class="layui-input-inline" style="width: 220px;">
+                            <input type="text" name="pname" id="pname" lay-verify="required" autocomplete="off"
+                                   placeholder="请选择"
+                                   disabled value="" class="layui-input" id="pname">
+                        </div>
+                         <button id="menuBtn" type="button" class="layui-btn layui-btn-normal">选择上级目录</button>
+                        <button class="layui-btn" lay-submit="" lay-filter="add">新增</button>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">文档名称</label>
+                        <div class="layui-input-inline" style="width: 220px;">
+                            <input type="text" name="name" id="name" lay-verify="required" autocomplete="off"
+                                   placeholder="请输入文档名称"
+                                   class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width: 120px;">
+                            <input type="text" name="sort" id="sort" autocomplete="off"
+                                   placeholder="0"
+                                   class="layui-input">
+                        </div>
+                         <button class="layui-btn layui-btn-normal" lay-submit="" lay-filter="save">提交</button>
+                         <a class="layui-btn layui-btn-danger" href="javascript:;" id="del" lay-submit="">删除</a>
+                         <a class="layui-btn layui-btn-normal" href="javascript:;" id="edit" lay-submit="">编辑文档</a>
+                     </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline" id="api-editormd" style="width: 100%;border: 1px solid #e4e4e4">
+                            <div id="markdown">
+                                <div id="markdown-view" style="border: 1px solid #e4e4e4"></div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="pid" class="layui-input" id="pid" value="1">
+                        <input type="hidden" name="id" class="layui-input" id="id" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="menuContent" class="menuContent" style="display:none; position: absolute;">
+            <ul id="treeMenu" class="ztree" style="margin-top:0; width:200px; height: 200px"></ul>
+        </div>
+
+</form>
+
+<script>
+    var apiEditor;
+    var $, form;
+    layui.config({
+        base: "js/"
+    }).use(['form', 'element', 'layer', 'jquery'], function () {
+        form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        $ = layui.jquery;
+
+        form.on("submit", function (data) {
+            var sub_type = data.elem.getAttribute("lay-filter")
+            console.log(sub_type)
+            if (sub_type == "add") {
+                $("#id").val(0);
+            } else {
+                if ($("#id").val() == "0") {
+                    layer.msg("修改先请在左侧权限树选择节点")
+                    return false
+                }
+            }
+            console.log($("form").serialize());
+
+            $.post('{{urlfor "XopDocumentController.AjaxSave"}}', $("form").serialize(), function (out) {
+
+                if (out.status == 0) {
+                    // layer.msg("操作成功")
+                    layer.alert('你成功了', {icon: 1}, function (index) {
+                        window.location.reload();
+                    });
+                } else {
+                    layer.msg(out.message)
+                }
+            }, "json");
+            return false;
+        });
+
+        form.render();
+        //但是，如果你的HTML是动态生成的，自动渲染就会失效
+        //因此你需要在相应的地方，执行下述方法来手动渲染，跟这类似的还有 element.init();
+
+    });
+</script>
+
+<script type="text/javascript">
+    var zNodes = [{id: 1, pId: 0, name: "数据错误"}];
+    $(document).ready(function () {
+        // $("form[name=form]").parent().find("input[type=radio]").eq(1).attr("checked", true);
+        var setting = {
+            // edit: {
+            //  enable: true
+            // },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            },
+            callback: {
+                beforeDrag: beforeDrag,
+                onClick: editOnClick
+            }
+        };
+
+        function editOnClick(e, treeId, treeNode) {
+            var zTree = $.fn.zTree.getZTreeObj("treeDemo"),
+                nodes = zTree.getSelectedNodes();
+            if (nodes[0].id == 1) {
+                // alert('不允许修改根节点');
+                 return;
+            }
+
+            if (nodes[0].parentTId) {
+                var parentInfo = zTree.getNodeByTId(nodes[0].parentTId);
+                pid = parentInfo.id;
+                pname = parentInfo.name;
+            }
+
+            var id = nodes[0].id;
+
+            $("#pid").val(nodes[0].pId);
+            $("#id").val(nodes[0].id);
+            $("#pname").val(pname);
+            $("#name").val(nodes[0].name);
+
+            $.ajax({
+                type: "POST",
+                url: "{{urlfor "XopDocumentController.AjaxNode"}}",
+                data: {id: id},
+                dataType: 'json',
+                success: function (data) {
+
+                    if (data.code == 0) {
+                        $("#markdown-view").remove();
+                        $("#markdown").append('<div class="layui-col-md9" id="markdown-view" style="border: 1px solid #e4e4e4"></div>');
+                        apiEditor = editormd.markdownToHTML("markdown-view", {
+                            htmlDecode: "style,script,iframe",  // you can filter tags decode
+                            markdown: data.data.detail,
+                            emoji: true,
+                            taskList: true,
+                            tex: true,  // 默认不解析
+                            flowChart: true,  // 默认不解析
+                            sequenceDiagram: true,  // 默认不解析
+                            codeFold: true,
+                        });
+                        $("#sort").val(data.data.sort);
+                        form.render();
+                    }
+                }
+            });
+
+        }
+
+        function beforeDrag(treeId, treeNodes) {
+            return false;
+        }
+
+        function setEdit() {
+            var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        }
+
+        // //增加节点
+        var newCount = 1;
+        var maxId = 0;
+
+        function add(e) {
+            var maxId = $('#max_id').val();
+            var zTree = $.fn.zTree.getZTreeObj("treeDemo"),
+                isParent = e.data.isParent,
+                nodes = zTree.getSelectedNodes(),
+                treeNode = nodes[0];
+
+            if (treeNode) {
+                treeNode = zTree.addNodes(treeNode, {
+                    id: (maxId - (-newCount)),
+                    pId: treeNode.id,
+                    isParent: isParent,
+                    name: "new node" + treeNode.id + (newCount++)
+                });
+            } else {
+                treeNode = zTree.addNodes(null, {
+                    id: (maxId - (-newCount)),
+                    pId: 0,
+                    isParent: isParent,
+                    name: "new node" + (newCount++)
+                });
+            }
+
+            if (treeNode) {
+                zTree.editName(treeNode[0]);
+            } else {
+                alert("叶子节点被锁定，无法增加子节点");
+            }
+        };
+
+        function showCode(str) {
+            var code = $("#code");
+            code.empty();
+            for (var i = 0, l = str.length; i < l; i++) {
+                code.append("<li>" + str[i] + "</li>");
+            }
+        }
+
+        //加载树
+        refresh_tree();
+
+
+        function refresh_tree() {
+
+            var time = Date.parse(new Date());
+            $.ajax({
+                type: "POST",
+                url: "{{urlfor "XopDocumentController.AjaxNodes"}}",
+                data: {time: time},
+                dataType: 'json',
+                success: function (data) {
+                    if (data.code == 0) {
+                        zNodes = data.data;
+                        $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+                        $.fn.zTree.init($("#treeMenu"), menu, zNodes);
+                    }
+                }
+            });
+            setEdit();
+            $("#remove").bind("change", setEdit);
+            $("#rename").bind("change", setEdit);
+            $("#removeTitle").bind("propertychange", setEdit)
+                .bind("input", setEdit);
+            $("#renameTitle").bind("propertychange", setEdit)
+                .bind("input", setEdit);
+        }
+
+
+        //删除
+        $('#del').on('click', function () {
+            var id = $("#id").val();
+            if (id == 0) {
+                layer.msg('请在左侧权限树选择节点');
+                return false;
+            }
+            layer.confirm('确认要删除吗？', {icon: 3, title: '提示'}, function (index) {
+                $.post('{{urlfor "XopDocumentController.AjaxDel"}}', {id: id}, function (out) {
+                    if (out.status == 0) {
+                        // layer.msg("操作成功")
+                        layer.alert('你删除成功了', {icon: 1}, function (index) {
+                            window.location.reload();
+                        });
+                    } else {
+                        layer.msg(out.message)
+                    }
+                }, "json");
+            });
+            return false;
+        });
+
+        $('#edit').on('click', function () {
+            var id = $("#id").val();
+            if (id == 0) {
+                layer.msg('请在左侧权限树选择节点');
+                return false;
+            }
+            window.location.href='{{urlfor "XopDocumentController.Edit"}}?id='+id;
+             return false;
+        });
+
+        // //清空
+        // $('#submit_cancel_button').on('click',function(){
+        //     var fields = ['id','pid','pname','name','menu_url','sort'];
+        //     $.each(fields,function(k,v) {
+        //         $("form[name=form_add]").find("input[name="+v+"]").val('');
+        //     });
+
+        // });
+
+        //以下是下拉选择框
+        var menu = {
+            view: {
+                dblClickExpand: false
+            },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            },
+            callback: {
+                // beforeClick: beforeClick,
+                onClick: onClick
+            }
+        };
+
+
+        function beforeClick(treeId, treeNode) {
+            var check = (treeNode && !treeNode.isParent);
+            if (!check) alert("不能选择");
+            return check;
+        }
+
+        function onClick(e, treeId, treeNode) {
+            var zTree = $.fn.zTree.getZTreeObj("treeMenu"),
+                nodes = zTree.getSelectedNodes(),
+                v = "";
+
+            nodes.sort(function compare(a, b) {
+                return a.id - b.id;
+            });
+            for (var i = 0, l = nodes.length; i < l; i++) {
+                v += nodes[i].name + ",";
+            }
+            if (v.length > 0) v = v.substring(0, v.length - 1);
+            var pid = $("#pid");
+
+            $("#pid").val(nodes[0].id);
+            $("#pname").val(v);
+
+            hideMenu()
+        }
+
+        $("#menuBtn").on("click", function () {
+            showMenu()
+        })
+
+        function showMenu() {
+            var pname = $("#pname");
+            var paOffset = $("#pname").offset();
+//            var sideOffset = $("#left_side").width();
+//            console.log(sideOffset.left)
+            $("#menuContent").css({
+                left: (paOffset.left) + "px",
+                top: (paOffset.top - pname.outerHeight() + 70) + "px"
+            }).slideDown("fast");
+
+            $("body").bind("mousedown", onBodyDown);
+        }
+
+        function hideMenu() {
+            $("#menuContent").fadeOut("fast");
+            $("body").unbind("mousedown", onBodyDown);
+        }
+
+        function onBodyDown(event) {
+            if (!(event.target.id == "menuBtn" || event.target.id == "menuContent" || $(event.target).parents("#menuContent").length > 0)) {
+                hideMenu();
+            }
+        }
+
+    });
+</script>
+

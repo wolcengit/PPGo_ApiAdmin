@@ -1,0 +1,24 @@
+version: "2"
+services:
+  ppgo_apiadmin:
+    image: wolcen/xopadmin:1.0
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - PPGO_HTTPPORT=8081
+      - PPGO_RUNMODE=dev
+      - PPGO_DB_HOST=172.10.0.100
+      - PPGO_DB_USER=ppgo_api_admin
+      - PPGO_DB_PASS="ppgo_api_admin.P@ssw0rd"
+      - PPGO_DB_PORT=3306
+      - PPGO_DB_NAME=ppgo_api_admin
+      - PPGO_DB_PREFIX=pp_
+      - PPGO_LDAP_ENABLE=false
+      - PPGO_LDAP_DOMAIN="@xxx.local"
+      - PPGO_LDAP_HOST=172.10.0.1
+      - PPGO_LDAP_PORT=389
+      - PPGO_LDAP_BASE="dc=xxx,dc=local"
+      - PPGO_LDAP_USER="cn=ldaponly,cn=users,dc=xxx,dc=local"
+      - PPGO_LDAP_PASS="P@ssw0rd"
+ 

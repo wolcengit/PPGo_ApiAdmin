@@ -21,13 +21,21 @@
         <div class="layui-carousel video_mask bg-img" id="login_carousel" >
 
             <div class="login layui-anim layui-anim-up">
-                <h1>PPGo API管理后台</h1></p>
+                <h1>XOP管理后台</h1></p>
                 <form class="layui-form" action="" method="post">
                     <div class="layui-form-item">
                         <input type="text" name="username" lay-verify="required" placeholder="请输入账号" autocomplete="off"  value="{{.username}}" class="layui-input">
                     </div>
                     <div class="layui-form-item">
                         <input type="password" name="password" lay-verify="required" placeholder="请输入密码" autocomplete="off" value="" class="layui-input">
+                    </div>
+                    <div class="layui-form-item">
+                        <select name="prod_id" id="prod_id" lay-filter="prodfilter"   lay-verify="required"  lay-search=""  >
+                            <option value="">请选择产品</option>
+                            {{range $index,$elem := .Products}}
+                                <option value="{{$elem.id}}">{{$elem.name}}</option>
+                            {{end}}
+                        </select>
                     </div>
                     <button class="layui-btn login_btn" lay-submit="" lay-filter="login">登陆系统</button>
                 </form>

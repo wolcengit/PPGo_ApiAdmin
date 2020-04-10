@@ -8,7 +8,9 @@
 package models
 
 import (
+	"bytes"
 	"github.com/astaxie/beego/orm"
+	"strconv"
 )
 
 type Auth struct {
@@ -20,6 +22,7 @@ type Auth struct {
 	Sort       int    `orm:"column(sort);type(int)" json:"sort"`                  //排序，越小越前
 	Icon       string `orm:"column(icon);size(254)" json:"icon"`                  //icon
 	IsShow     int    `orm:"column(is_show);type(int)" json:"is_show"`            //是否显示，0-隐藏，1-显示
+	Opened     int    `orm:"column(opened);type(int)" json:"opened"`              //是否管控：0-公开 1-管控
 	Status     int    `orm:"column(status);type(int)" json:"status"`              //状态：1-正常 0禁用
 	CreateId   int    `orm:"column(create_id);type(int)" json:"create_id"`        //创建者
 	UpdateId   int    `orm:"column(update_id);type(int)" json:"update_id"`        //修改者
@@ -66,4 +69,44 @@ func (a *Auth) Update(fields ...string) error {
 		return err
 	}
 	return nil
+}
+
+func AuthGetListForMenu(uid int, rids string) ([]*Auth, int64) {
+	var nodes []*Auth
+	var count int64
+	var buf bytes.Buffer
+	if uid == 1 {
+		buf.WriteString("SELECT * FROM " + new(Auth).TableName() + " WHERE status = 1 order by pid,sort ")
+		sql := buf.String()
+		count, err := orm.NewOrm().Raw(sql).QueryRows(&nodes)
+		if err != nil {
+			return nil, count
+		}
+	} else {
+		buf.WriteString("SELECT * FROM " + new(Auth).TableName() + " WHERE status = 1 AND (opened=0 OR id IN(SELECT auth_id FROM  ")
+		buf.WriteString(new(RoleAuth).TableName())
+		buf.WriteString(" WHERE role_id IN(?))) order by pid,sort ")
+		sql := buf.String()
+		count, err := orm.NewOrm().Raw(sql, rids).QueryRows(&nodes)
+		if err != nil {
+			return nil, count
+		}
+	}
+	return nodes, count
+}
+
+func AuthGetListForRole(rid int) ([]*Auth, int64) {
+	rids := strconv.Itoa(rid)
+	var nodes []*Auth
+	var count int64
+	var buf bytes.Buffer
+	buf.WriteString("SELECT * FROM " + new(Auth).TableName() + " WHERE status = 1 AND (id IN(SELECT auth_id FROM  ")
+	buf.WriteString(new(RoleAuth).TableName())
+	buf.WriteString(" WHERE role_id IN(?))) order by pid,sort ")
+	sql := buf.String()
+	count, err := orm.NewOrm().Raw(sql, rids).QueryRows(&nodes)
+	if err != nil {
+		return nil, count
+	}
+	return nodes, count
 }

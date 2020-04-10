@@ -20,6 +20,7 @@
     </table>
 
     <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
         <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
     </script>
@@ -33,13 +34,13 @@
                 //方法级渲染
         table.render({
             elem: '#table_list'
-            ,url: '/role/table'
+            ,url: '/role/ajaxtable'
             ,cols: [[
                 // {checkbox: true, fixed: true},
-                {field:'id', title: 'ID', align:'center',sort: true, width:150}
+                {field:'id', title: 'ID', align:'center',sort: true, width:80}
                 ,{field:'role_name',title: '角色名称'}
                 ,{field:'detail', title: '备注'}
-                ,{fixed: 'right', width:160, align:'center', toolbar: '#bar'}
+                ,{fixed: 'right', width:200, align:'center', toolbar: '#bar'}
             ]]
             ,id: 'listReload'
             ,page: true
@@ -64,7 +65,12 @@
         var data = obj.data;
         if(obj.event === 'detail'){
             //layer.msg('ID：'+ data.id + ' 的查看操作');
+            window.location.href="/role/detail?id="+data.id
         } else if(obj.event === 'del'){
+            if(data.status == 2){
+                layer.msg('系统角色不可以删除');
+                return
+            }
             layer.confirm('真的删除【'+data.role_name+'】角色么', function(index){
             var jsData = {'id':data.id}
             $.post('{{urlfor "RoleController.AjaxDel"}}', jsData, function (out) {
@@ -81,6 +87,10 @@
             layer.close(index);
         });
         } else if(obj.event === 'edit'){
+            if(data.status == 2){
+                layer.msg('系统角色不可以编辑');
+                return
+            }
             window.location.href="/role/edit?id="+data.id
         }
     });

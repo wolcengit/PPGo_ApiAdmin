@@ -24,8 +24,13 @@ type UserController struct {
 	BaseController
 }
 
+func (self *UserController) Books() {
+	self.Data["pageTitle"] = "我的书籍"
+	self.display()
+}
+
 func (self *UserController) Edit() {
-	self.Data["pageTitle"] = "资料修改"
+	self.Data["pageTitle"] = "我的资料"
 	id := self.userId
 	Admin, _ := models.AdminGetById(id)
 	row := make(map[string]interface{})
@@ -78,4 +83,22 @@ func (self *UserController) AjaxSave() {
 		self.ajaxMsg(err.Error(), MSG_ERR)
 	}
 	self.ajaxMsg("", MSG_OK)
+}
+
+func (self *UserController) AjaxTable() {
+	//列表
+	page, err := self.GetInt("page")
+	if err != nil {
+		page = 1
+	}
+	limit, err := self.GetInt("limit")
+	if err != nil {
+		limit = 30
+	}
+
+	searchName := strings.TrimSpace(self.GetString("searchName"))
+
+	self.pageSize = limit
+	list, count := models.BookLibraryGetListForUser(page, self.pageSize, self.prodId, searchName, self.userId)
+	self.ajaxList("成功", MSG_OK, count, list)
 }

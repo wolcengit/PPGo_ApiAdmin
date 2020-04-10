@@ -38,7 +38,16 @@
             <input type="radio" name="reset_pwd" value="1" title="重置">
             <input type="radio" name="reset_pwd" value="2" title="不重置" checked>
         </div>
-        <div class="layui-form-mid layui-word-aux">默认密码:george518</div>
+        <div class="layui-form-mid layui-word-aux"></div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">重置APP访问码</label>
+        <div class="layui-input-inline">
+            <input type="radio" name="reset_appkey" value="1" title="重置">
+            <input type="radio" name="reset_appkey" value="2" title="不重置" checked>
+        </div>
+        <div class="layui-form-mid layui-word-aux"></div>
     </div>
 
     <div class="layui-form-item">
@@ -93,7 +102,7 @@ var $;
             $.post('{{urlfor "AdminController.AjaxSave"}}', form_data, function (out) {
                 if (out.status == 0) {
                     layer.msg("操作成功",{icon: 1},function () {
-                        window.location.reload()
+                        window.location.href='{{urlfor "AdminController.List"}}'
                     })
                 } else {
                     layer.msg(out.message)

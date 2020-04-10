@@ -38,10 +38,27 @@ func (self *AuthController) List() {
 }
 
 //获取全部节点
-func (self *AuthController) GetNodes() {
+func (self *AuthController) AjaxNodes() {
 	filters := make([]interface{}, 0)
-	filters = append(filters, "status", 1)
+	filters = append(filters, "status__gte", 1)
+	filters = append(filters, "opened", 1)
 	result, count := models.AuthGetList(1, 1000, filters...)
+	list := make([]map[string]interface{}, len(result))
+	for k, v := range result {
+		row := make(map[string]interface{})
+		row["id"] = v.Id
+		row["pId"] = v.Pid
+		row["name"] = v.AuthName
+		row["open"] = true
+		list[k] = row
+	}
+
+	self.ajaxList("成功", MSG_OK, count, list)
+}
+func (self *AuthController) AjaxAuthNodes() {
+	id, _ := self.GetInt("id")
+
+	result, count := models.AuthGetListForRole(id)
 	list := make([]map[string]interface{}, len(result))
 	for k, v := range result {
 		row := make(map[string]interface{})

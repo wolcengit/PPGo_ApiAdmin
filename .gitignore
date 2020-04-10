@@ -12,5 +12,8 @@
 
 
 logs/
+uploads/*
 
 PPGo_ApiAdmin
+conf/app.conf
+docker-compose.yml

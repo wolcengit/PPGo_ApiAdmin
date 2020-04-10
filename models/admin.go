@@ -13,7 +13,7 @@ import (
 
 type Admin struct {
 	Id         int    `orm:"column(id);pk;auto;unique" json:"id"`
-	LoginName  string `orm:"column(login_name);size(32)" json:"login_name"`       //用户名
+	LoginName  string `orm:"column(login_name);size(128)" json:"login_name"`      //用户名
 	RealName   string `orm:"column(real_name);size(32)" json:"real_name"`         //真实姓名
 	Password   string `orm:"column(password);size(32)" json:"password"`           //密码
 	RoleIds    string `orm:"column(role_ids);size(254)" json:"role_ids"`          //角色id字符串，如：2,3,4
@@ -22,7 +22,9 @@ type Admin struct {
 	Salt       string `orm:"column(salt);size(10)" json:"salt"`                   //密码盐
 	LastLogin  int64  `orm:"column(last_login);type(bigint)" json:"last_login"`   //最后登录时间
 	LastIp     string `orm:"column(last_ip);size(16)" json:"last_ip"`             //最后登录IP
+	LastProd   int    `orm:"column(last_prod);type(int)" json:"last_prod"`        //最后登录产品
 	Status     int    `orm:"column(status);type(int)" json:"status"`              //状态：1-正常，0-禁用
+	Appkey     string `orm:"column(appkey);size(16)" json:"appkey"`               //APP1访问码
 	CreateId   int    `orm:"column(create_id);type(int)" json:"create_id"`        //创建者
 	UpdateId   int    `orm:"column(update_id);type(int)" json:"update_id"`        //修改者
 	CreateTime int64  `orm:"column(create_time);type(bigint)" json:"create_time"` //创建时间
@@ -75,4 +77,13 @@ func (a *Admin) Update(fields ...string) error {
 		return err
 	}
 	return nil
+}
+
+func AdminGetByAppkey(appkey string) (*Admin, error) {
+	r := new(Admin)
+	err := orm.NewOrm().QueryTable(new(Admin)).Filter("appkey", appkey).One(r)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
 }

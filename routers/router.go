@@ -7,18 +7,25 @@ import (
 
 func init() {
 
-	beego.Router("/", &controllers.HomeController{}, "*:Index")
+	beego.Router("/", &controllers.LoginController{}, "*:Login")
 
-	beego.Router("/login", &controllers.LoginController{}, "*:LoginIn")
-	beego.Router("/login_out", &controllers.LoginController{}, "*:LoginOut")
-	beego.Router("/no_auth", &controllers.LoginController{}, "*:NoAuth")
-
-	beego.Router("/home", &controllers.HomeController{}, "*:Index")
-	beego.Router("/home/start", &controllers.HomeController{}, "*:Start")
+	beego.AutoRouter(&controllers.LoginController{})
+	beego.AutoRouter(&controllers.HomeController{})
 
 	beego.AutoRouter(&controllers.AuthController{})
 	beego.AutoRouter(&controllers.RoleController{})
 	beego.AutoRouter(&controllers.AdminController{})
 	beego.AutoRouter(&controllers.UserController{})
+
+	beego.AutoRouter(&controllers.XopProductController{})
+	beego.AutoRouter(&controllers.XopDocumentController{})
+
+	beego.AutoRouter(&controllers.XopModuleController{})
+	beego.AutoRouter(&controllers.XopCategoryController{})
+	beego.AutoRouter(&controllers.XopGroupController{})
+	beego.AutoRouter(&controllers.XopFunctionController{})
+
+	beego.AutoRouter(&controllers.BookCategoryController{})
+	beego.AutoRouter(&controllers.BookLibraryController{})
 
 }

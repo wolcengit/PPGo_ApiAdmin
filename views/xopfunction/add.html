@@ -1,0 +1,198 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 40px;margin-top: 20px;">
+<link rel="stylesheet" href="/static/editor.md/css/editormd.min.css" />
+
+<form class="layui-form" action="" method="post" >
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择归属</label>
+        <div class="layui-input-inline">
+            <select name="mod_id" id="mod_id" lay-filter="modfilter"   lay-verify="required"  lay-search="" style="width: 100%">
+                <option value="">请选择模块</option>
+                {{range $index,$elem := .Modules}}
+                    <option value="{{$elem.id}}">{{$elem.name}}</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="layui-form-mid layui-word-aux">*</div>
+        <div class="layui-input-inline">
+            <select name="cat_id" id="cat_id" lay-filter="catfilter"   lay-search="" style="width: 100%">
+                <option value="">请选择类别</option>
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <select name="grp_id" id="grp_id" lay-filter="grpfilter"   lay-search="" style="width: 100%">
+                <option value="">请选择分组</option>
+            </select>
+        </div>
+     </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">函数编码</label>
+        <div class="layui-input-inline">
+            <input type="text" name="code" id="code" lay-verify="required" autocomplete="off" placeholder="函数编码" class="layui-input" value="">
+        </div>
+        <div class="layui-form-mid layui-word-aux">*</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">函数名称</label>
+        <div class="layui-input-inline" style="width: 600px;">
+            <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="函数名称" class="layui-input" value="">
+        </div>
+        <div class="layui-form-mid layui-word-aux">*</div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">函数说明</label>
+        <div class="layui-input-inline" id="api-editormd" style="border: 1px solid #e4e4e4">
+<textarea name="detail" style="display:none;">
+
+**ID**
+
+T0001
+
+**名称**
+
+xmsopen.xoptest.echoTest
+
+**版本**
+
+1.0.0
+
+**描述**
+
+对接测试用于检查各自类型数据传输
+
+**关键字**
+
+
+
+**请求参数**
+
+这里仅仅是业务请求参数，不包含平台参数
+
+|字段|JSON|必需 |类型|描述 |示例 |
+|:---|:---:|:---:|:---:|:---|:---|
+|@rqid  |RqId|false   |String   |测试代码   |PK-1 |
+|hotelid  |HotelId|true   |String   |酒店代码   |H00001 |
+|ok  |Ok|false   |boolean   |布尔   |true |
+|rq  |Rq|false   |Date   |日期   |2016-02-03 17:23:00 |
+
+**响应结果**
+
+这里仅仅是业务响应结果，不包含平台响应结果， 平台调用失败时候只有平台的响应结果
+
+|字段   |必需 | 类型   | 描述     |返回示例值 |
+|:----------|:---:|:------:|:---------|:---------|
+|@rqid  |false   |String   |测试代码   |PK-1 |
+|hotelid  |true   |String   |酒店代码   |H00001 |
+|ok  |false   |boolean   |布尔   |true |
+|rq  |false   |Date   |日期   |2016-02-03 17:23:00 |
+
+**响应错误定义**
+
+这里仅仅是业务处理的错误，错误定义为4未整数，需要大于1000
+
+|错误代码   | 错误描述 |
+|:----------|:----:|
+</textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="sub">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+</div>
+
+<script>
+    var apiEditor;
+
+    layui.use(['form','element','layer','jquery','table'],function(){
+        var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        var $ = layui.jquery;
+        var table = layui.table;
+
+
+        form.on('select(modfilter)',function (data) {
+            var jsData = {'id':data.value}
+            $.post('{{urlfor "XopCategoryController.AjaxList"}}', jsData, function (out) {
+                $('#cat_id').html('<option value="">请选择类别</option>');
+                $.each(out.data,function (index, item) {
+                    $('#cat_id').append(new Option(item.name ,item.id));
+                })
+                layui.form.render("select");
+            }, "json");
+
+        })
+
+        form.on('select(catfilter)',function (data) {
+            var jsData = {'id':data.value}
+            $.post('{{urlfor "XopGroupController.AjaxList"}}', jsData, function (out) {
+                $('#grp_id').html('<option value="">请选择分组</option>');
+                $.each(out.data,function (index, item) {
+                    $('#grp_id').append(new Option(item.name ,item.id));
+                })
+                layui.form.render("select");
+            }, "json");
+
+        })
+
+
+        form.on('submit(sub)', function(data){
+            var form_data = data.field;
+            $.post('{{urlfor "XopFunctionController.AjaxSave"}}', form_data, function (out) {
+                if (out.status == 0) {
+                    layer.msg("操作成功",{icon: 1},function () {
+                        window.location.href='{{urlfor "XopFunctionController.List"}}'
+                    })
+                } else {
+                    layer.msg(out.message)
+                }
+            }, "json");
+            return false;
+        });
+      
+      //但是，如果你的HTML是动态生成的，自动渲染就会失效
+      //因此你需要在相应的地方，执行下述方法来手动渲染，跟这类似的还有 element.init();
+      form.render();
+}); 
+</script>
+
+<script src="/static/js/jquery.min.js?t=13"></script>
+<script src="/static/editor.md/editormd.js" type="text/javascript"></script>
+<script src="/static/editor.md/lib/marked.min.js"></script>
+<script src="/static/editor.md/lib/prettify.min.js"></script>
+<script src="/static/editor.md/lib/raphael.min.js"></script>
+<script src="/static/editor.md/lib/underscore.min.js"></script>
+<script src="/static/editor.md/lib/sequence-diagram.min.js"></script>
+<script src="/static/editor.md/lib/flowchart.min.js"></script>
+<script src="/static/editor.md/lib/jquery.flowchart.min.js"></script>
+
+<script type="text/javascript">
+
+
+    $(function() {
+        apiEditor = editormd("api-editormd", {
+            width  : "90%",
+            height : 720,
+            path   : '/static/editor.md/lib/',
+            onchange : function() {
+                $("#output").html("onchange : this.id =>" + this.id + ", markdown =>" + this.getValue());
+                console.log("onchange =>", this, this.id, this.settings, this.state);
+            },
+            toolbarIcons : function() {
+                // Or return editormd.toolbarModes[name]; // full, simple, mini
+                // Using "||" set icons align right.
+                return ["undo", "redo", "|",
+                    "h1", "table", "|",
+                    "goto-line", "watch", "preview", "fullscreen", "clear", "search"]
+            },
+        });
+
+
+    });
+</script>
+
+
+
