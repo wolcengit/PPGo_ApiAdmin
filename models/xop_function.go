@@ -18,6 +18,7 @@ type XopFunction struct {
 	GrpId       int    `orm:"column(grp_id);type(int)" json:"grp_id"`                //分组ID
 	Code        string `orm:"column(code);size(16)" json:"code"`                     //编码
 	Name        string `orm:"column(name);size(64)" json:"name"`                     //名称
+	XopName     string `orm:"column(xop_name);size(128)" json:"xop_name"`            //XOP名称
 	Detail      string `orm:"column(detail);type(text)" json:"detail"`               //说明
 	Detail2     string `orm:"column(detail2);type(text)" json:"detail2"`             //说明2
 	Status      int    `orm:"column(status);type(int)" json:"status"`                //状态：1-正常
@@ -114,6 +115,7 @@ func XopFunctionGetListForBrowse(page, pageSize int, filters ...interface{}) ([]
 		row["id"] = v.Id
 		row["code"] = v.Code
 		row["name"] = v.Name
+		row["xop_name"] = v.XopName
 		//row["detail"] = v.Detail
 		row["create_time"] = beego.Date(time.Unix(v.CreateTime, 0), "Y-m-d H:i:s")
 		row["update_time"] = beego.Date(time.Unix(v.UpdateTime, 0), "Y-m-d H:i:s")

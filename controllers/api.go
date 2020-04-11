@@ -16,6 +16,7 @@ type XopNode struct {
 	Cat     int    `json:"cat"`
 	Grp     int    `json:"grp"`
 	Func    int    `json:"func"`
+	Xop     string `json:"xop"` //xop name
 	Code    string `json:"code"`
 	Name    string `json:"name"`
 	Detail  string `json:"detail"`
@@ -28,12 +29,12 @@ func (self *ApiController) XopNode() {
 
 	if req.Level == 1 {
 		self.xopModule(req)
-	}else if req.Level == 2 {
-		self.xopCategory(req);
-	}else if req.Level == 3 {
-		self.xopGroup(req);
-	}else if req.Level == 4 {
-		self.xopFunction(req);
+	} else if req.Level == 2 {
+		self.xopCategory(req)
+	} else if req.Level == 3 {
+		self.xopGroup(req)
+	} else if req.Level == 4 {
+		self.xopFunction(req)
 	}
 
 	self.ajaxMsg("Error Level", MSG_ERR)
@@ -51,6 +52,7 @@ func (self *ApiController) xopModule(req XopNode) {
 
 		entity.Code = req.Code
 		entity.Name = req.Name
+		entity.XopName = req.Xop
 		entity.Detail = req.Detail
 
 		entity.UpdateId = self.userId
@@ -68,6 +70,7 @@ func (self *ApiController) xopModule(req XopNode) {
 
 		entity.Code = req.Code
 		entity.Name = req.Name
+		entity.XopName = req.Xop
 		entity.Detail = req.Detail
 
 		entity.UpdateId = self.userId
@@ -211,6 +214,7 @@ func (self *ApiController) xopFunction(req XopNode) {
 
 		entity.Code = req.Code
 		entity.Name = req.Name
+		entity.XopName = req.Xop
 		entity.Detail = req.Detail
 		entity.Detail2 = req.Detail2
 
@@ -229,6 +233,7 @@ func (self *ApiController) xopFunction(req XopNode) {
 
 		entity.Code = req.Code
 		entity.Name = req.Name
+		entity.XopName = req.Xop
 		entity.Detail = req.Detail
 		entity.Detail2 = req.Detail2
 

@@ -79,6 +79,7 @@ func (self *XopFunctionController) Edit() {
 	row["id"] = v.Id
 	row["code"] = v.Code
 	row["name"] = v.Name
+	row["xop_name"] = v.XopName
 	row["detail"] = v.Detail
 	row["mod_id"] = int(v.ModId)
 	row["cat_id"] = int(v.CatId)
@@ -105,6 +106,7 @@ func (self *XopFunctionController) AjaxSave() {
 
 	entity.Code = strings.TrimSpace(self.GetString("code"))
 	entity.Name = strings.TrimSpace(self.GetString("name"))
+	entity.XopName = strings.TrimSpace(self.GetString("xop_name"))
 	entity.Detail = strings.TrimSpace(self.GetString("detail"))
 	detail2 := strings.TrimSpace(self.GetString("detail2"))
 	entity.Status = 1
@@ -112,7 +114,7 @@ func (self *XopFunctionController) AjaxSave() {
 	entity.CatId, _ = self.GetInt("cat_id")
 	entity.GrpId, _ = self.GetInt("grp_id")
 	refid, _ := self.GetInt("ref_id")
-	if(refid > 0){
+	if refid > 0 {
 		entity.RefId = refid
 	}
 

@@ -15,6 +15,7 @@ type XopModule struct {
 	ProdId     int    `orm:"column(prod_id);type(int)" json:"prod_id"`            //产品ID
 	Code       string `orm:"column(code);size(16)" json:"code"`                   //编码
 	Name       string `orm:"column(name);size(64)" json:"name"`                   //名称
+	XopName    string `orm:"column(xop_name);size(128)" json:"xop_name"`          //XOP名称
 	Detail     string `orm:"column(detail);size(1024)" json:"detail"`             //说明
 	Status     int    `orm:"column(status);type(int)" json:"status"`              //状态：1-正常
 	CreateId   int    `orm:"column(create_id);type(int)" json:"create_id"`        //创建者
@@ -106,6 +107,7 @@ func XopModuleGetListForBrowse(page, pageSize int, filters ...interface{}) ([]ma
 		row["id"] = v.Id
 		row["code"] = v.Code
 		row["name"] = v.Name
+		row["xop_name"] = v.XopName
 		row["detail"] = v.Detail
 		row["create_time"] = beego.Date(time.Unix(v.CreateTime, 0), "Y-m-d H:i:s")
 		row["update_time"] = beego.Date(time.Unix(v.UpdateTime, 0), "Y-m-d H:i:s")

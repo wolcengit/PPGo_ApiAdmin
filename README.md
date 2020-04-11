@@ -34,8 +34,8 @@
 
 ### XOP模块
 - URL：/xopmodule
-- INSERT: code,name,detail => id
-- UPDATE: id,code,name,detail => id
+- INSERT: xop_name,code,name,detail => id
+- UPDATE: id,xop_name,code,name,detail => id
 
 ### XOP类别
 - URL：/xopcategory
@@ -49,8 +49,8 @@
 
 ### XOP函数
 - URL：/xopfunction
-- INSERT: grp_id,cat_id,mod_id,code,name,detail,detail2 => id
-- UPDATE: id,grp_id,cat_id,mod_id,code,name,detail,detail2 => id
+- INSERT: grp_id,cat_id,mod_id,xop_name,code,name,detail,detail2 => id
+- UPDATE: id,grp_id,cat_id,mod_id,xop_name,code,name,detail,detail2 => id
 
 ### XOP文档
 - URL：/xopdocument
@@ -81,6 +81,7 @@
 "cat":"ref-id",
 "grp":"ref-id",
 "func":"ref-id",
+"xop": "xop object name",
 "code":"",
 "name":"",
 "detail":"",
